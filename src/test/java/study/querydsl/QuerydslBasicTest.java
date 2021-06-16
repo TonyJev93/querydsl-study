@@ -461,7 +461,7 @@ public class QuerydslBasicTest {
     }
 
     @Test
-    public void coccat() throws Exception {
+    public void conccat() throws Exception {
         List<String> result = queryFactory
                 .select(member.username.concat("_").concat(member.age.stringValue())) // stringValue() 문자가 아닌 경우 문자화 가능. (ENUM에 유용하게 사용가능)
                 .from(member)
@@ -471,8 +471,5 @@ public class QuerydslBasicTest {
         for (String s : result) {
             System.out.println("s = " + s);
         }
-
-
     }
-
 }

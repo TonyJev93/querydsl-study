@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.QMemberDto;
 import study.querydsl.dto.UserDto;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
@@ -162,6 +163,7 @@ public class QuerydslMiddleTest {
     public void find_user_dto_by_querydsl_constructor() throws Exception {
         // DTO 내의 컬럼명이 DB와 다를 경우 as 를 이용하여 이름을 맞춰줘야 함.
         List<UserDto> result = queryFactory
+                // 컴파일 에러를 잡을 수 없음.
                 .select(Projections.constructor(UserDto.class,
                         member.username,
                         member.age
@@ -171,6 +173,19 @@ public class QuerydslMiddleTest {
 
         for (UserDto userDto : result) {
             System.out.println("userDto = " + userDto);
+        }
+    }
+
+    @Test
+    public void find_dto_by_query_projection() throws Exception {
+        // query projection 사용 시 컴파일 레벨의 에러 확인 가능
+        List<MemberDto> result = queryFactory
+                .select(new QMemberDto(member.username, member.age))
+                .from(member)
+                .fetch();
+
+        for (MemberDto memberDto : result) {
+            System.out.println("memberDto = " + memberDto);
         }
     }
 }

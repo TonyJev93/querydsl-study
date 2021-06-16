@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
 import study.querydsl.dto.QMemberDto;
@@ -254,6 +255,60 @@ public class QuerydslMiddleTest {
     // 가독성 향상
     private Predicate allEq(String usernameCond, Integer ageCond) {
         return usernameEq(usernameCond).and(ageEq(ageCond));
+    }
+
+    @Test
+    @Commit
+    public void bulk_update() throws Exception {
+
+        // member1 = 10 -> 비회원
+        // member2 = 20 -> 비회원
+        // member3 = 30 -> 유지
+        // member4 = 40 -> 유지
+
+        // 주의 : Bulk 연산은 영속성 컨텍스트 무시하고 DB에 바로 반영 (DB != 영속성 컨텍스트)
+        long count = queryFactory
+                .update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28))
+                .execute();
+
+        // 영속성 컨텍스트 초기화를 해줘야 DB반영된 데이터를 가지고 온다.
+        em.flush();
+        em.clear();
+
+        // 영속성 컨텍스트에 있으면 영속성 컨텍스트에서 갖고 옴. (없어야 DB에서 갖고 옴)
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .fetch();
+
+        for (Member member1 : result) {
+            System.out.println("member1 = " + member1);
+        }
+    }
+
+    @Test
+    public void bulk_add() throws Exception {
+        long count = queryFactory
+                .update(member)
+                .set(member.age, member.age.add(1))
+                .execute();
+    }
+
+    @Test
+    public void bulk_multifle() throws Exception {
+        long count = queryFactory
+                .update(member)
+                .set(member.age, member.age.multiply(2))
+                .execute();
+    }
+
+    @Test
+    public void bulk_delete() throws Exception {
+        long count = queryFactory
+                .delete(member)
+                .where(member.age.gt(28))
+                .execute();
     }
 }
 

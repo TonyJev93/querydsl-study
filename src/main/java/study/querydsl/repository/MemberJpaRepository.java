@@ -115,8 +115,8 @@ public class MemberJpaRepository {
                 .fetch();
     }
 
-    private BooleanExpression ageBetween(int ageLoe, int ageGoe) {
-        return ageLoe(ageLoe).and(ageGoe(ageGoe));
+    private BooleanExpression ageBetween(Integer ageLoe, Integer ageGoe) {
+        return ageLoe(ageLoe) == null ? ageGoe(ageGoe) : ageLoe(ageLoe).and(ageGoe(ageGoe));
     }
 
     private BooleanExpression usernameEq(String username) {

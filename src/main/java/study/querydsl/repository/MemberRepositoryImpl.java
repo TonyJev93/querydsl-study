@@ -2,13 +2,16 @@ package study.querydsl.repository;
 
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.dto.QMemberTeamDto;
+import study.querydsl.entity.Member;
 
 import javax.persistence.EntityManager;
 import java.util.List;
@@ -81,6 +84,24 @@ public class MemberRepositoryImpl implements MemberRepositoryCustom {
         long total = getTotal(condition);
 
         return new PageImpl<>(content, pageable, total);
+    }
+
+    @Override
+    public Page<MemberTeamDto> searchPageComplexOptimizing(MemberSearchCondition condition, Pageable pageable) {
+        List<MemberTeamDto> content = getMemberTeamDtos(condition, pageable);
+
+        JPAQuery<Member> countQuery = queryFactory
+                .select(member)
+                .from(member)
+                .leftJoin(member.team, team)
+                .where(
+                        usernameEq(condition.getUsername()),
+                        teamNameEq(condition.getTeamName()),
+                        ageBetween(condition.getAgeLoe(), condition.getAgeGoe())
+                );
+
+        // (첫 페이지 & 등록 갯수 < size) or 마지막 페이지 인 경우 = total count(fetchCount) 를 수행하지 않아도 돼서 최적화 가능
+        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchCount);
     }
 
     private long getTotal(MemberSearchCondition condition) {

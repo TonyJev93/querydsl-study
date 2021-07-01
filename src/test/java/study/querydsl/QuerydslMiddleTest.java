@@ -326,7 +326,7 @@ public class QuerydslMiddleTest {
     }
 
     @Test
-    public void squl_function_2() throws Exception {
+    public void sql_function_2() throws Exception {
         List<String> result = queryFactory
                 .select(member.username)
                 .from(member)
